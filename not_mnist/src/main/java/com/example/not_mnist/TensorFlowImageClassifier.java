@@ -99,9 +99,9 @@ public class TensorFlowImageClassifier implements Classifier {
 
 
 
-        //final int numClasses = (int) operation.output(0).shape().size(1);
+        final int numClasses = (int) operation.output(0).shape().size(1);
 
-        //Log.i(TAG, "Read " + c.labels.size() + " labels, output layer size is " + numClasses);
+        Log.i(TAG, "Read " + c.labels.size() + " labels, output layer size is " + numClasses);
 
         // Ideally, inputSize could have been retrieved from the shape of the input operation.  Alas,
         // the placeholder node for input in the graphdef typically used does not specify a shape, so it
@@ -115,7 +115,7 @@ public class TensorFlowImageClassifier implements Classifier {
         c.intValues = new int[inputSize * inputSize];
 //        c.floatValues = new float[inputSize * inputSize * 3];
         c.floatValues = new float[inputSize * inputSize];
-        c.outputs = new float[10];
+        c.outputs = new float[numClasses];
 
         return c;
     }
