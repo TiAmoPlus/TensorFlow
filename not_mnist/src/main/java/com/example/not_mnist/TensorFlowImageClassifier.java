@@ -186,21 +186,23 @@ public class TensorFlowImageClassifier implements Classifier {
         // Preprocess the image data from 0-255 int to normalized float based
         // on the provided parameters.
         Bitmap greyBitmap=gray(bitmap,2);
-//        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
         intValues=getGrayPix_R(greyBitmap,true);
-//        for (int i = 0; i < intValues.length; ++i) {
-//            final int val = intValues[i];
-//            floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
-//            floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
-//            floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
-//        }
+/*        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        for (int i = 0; i < intValues.length; ++i) {
+            final int val = intValues[i];
+            floatValues[i * 3 + 0] = Math.abs((((val >> 16) & 0xFF) - imageMean) / imageStd/255);
+            floatValues[i * 3 + 1] = Math.abs((((val >> 8) & 0xFF) - imageMean) / imageStd/255);
+            floatValues[i * 3 + 2] = Math.abs(((val & 0xFF) - imageMean) / imageStd/255);
+        }*/
         for (int i = 0; i < intValues.length; ++i) {
             floatValues[i]=(float)(intValues[i]/255.0);
         }
 
         // Copy the input data into TensorFlow.
         Trace.beginSection("feed");
-        inferenceInterface.feed(inputName, floatValues, 1,inputSize*inputSize*1);
+//        inferenceInterface.feed(inputName, floatValues, 1,32*32*3);
+        inferenceInterface.feed(inputName, floatValues, 1,inputSize*inputSize);
 
 
         Trace.endSection();
