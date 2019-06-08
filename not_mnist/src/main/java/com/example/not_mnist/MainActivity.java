@@ -61,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private static final float IMAGE_STD = 1;
     private static final String INPUT_NAME = "x";
     private static final String OUTPUT_NAME = "final_result";
-    private static final String MODEL_FILE = "file:///android_asset/model/model.pb";
-    private static final String LABEL_FILE = "file:///android_asset/model/imagenet_comp_graph_label_strings_china.txt";
+    private static final String MODEL_FILE = "file:///android_asset/model/mnist.pb";
+    private static final String LABEL_FILE = "file:///android_asset/model/label.txt";
 
     private Executor executor;
     private Uri currentTakePhotoUri;
@@ -222,9 +222,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, Thread.currentThread().getName() + " startImageClassifier");
                     //首先图片缩放
                     Bitmap croppedBitmap = getScaleBitmap(bitmap, INPUT_SIZE);
-                    //灰化图片,注意这里虽然是灰化，但只是将R,G,B的值都变成一样的，所以本质上还是RGB的三通道图像
-                    Bitmap grayBitmap=gray(croppedBitmap,2);
-                    final List<Classifier.Recognition> results = classifier.recognizeImage(grayBitmap);
+                    final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
 
                     Log.i(TAG, "startImageClassifier results: " + results);
                     runOnUiThread(new Runnable() {

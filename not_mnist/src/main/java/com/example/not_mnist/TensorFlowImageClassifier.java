@@ -26,7 +26,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
     // Only return this many results with at least this confidence.
 
-    private static final int MAX_RESULTS = 100;
+    private static final int MAX_RESULTS = 10;
     private static final float THRESHOLD = 0.01f;
 
     // Config values.
@@ -119,39 +119,63 @@ public class TensorFlowImageClassifier implements Classifier {
 
         return c;
     }
+
     /**
-     * 将图像像素数据转为一维数组，isReverse判断是否需要反化图像
-     * @param bp
-     * @param isReverse
-     * @return
+     * \
+     * @param bitmap 原bitmap位示图
+     * @param schema 模式 0:(最大值+最小值)/2.1: (red+blue+green)/3.2:red*0.3+green*0.59+0.11*blue
+     * @return 返回灰度的Bitmap
      */
+    public Bitmap gray(Bitmap bitmap, int schema)
+    {
+        Bitmap bm = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(), bitmap.getConfig());
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        for(int row=0; row<height; row++){
+            for(int col=0; col<width; col++){
+                int pixel = bitmap.getPixel(col, row);// ARGB
+                int red = Color.red(pixel); // same as (pixel >> 16) &0xff
+                int green = Color.green(pixel); // same as (pixel >> 8) &0xff
+                int blue = Color.blue(pixel); // same as (pixel & 0xff)
+                int alpha = Color.alpha(pixel); // same as (pixel >>> 24)
+                int gray = 0;
+                if(schema == 0)
+                {
+                    gray = (Math.max(blue, Math.max(red, green)) +
+                            Math.min(blue, Math.min(red, green))) / 2;
+                }
+                else if(schema == 1)
+                {
+                    gray = (red + green + blue) / 3;
+                }
+                else if(schema == 2)
+                {
+                    gray = (int)(0.3 * red + 0.59 * green + 0.11 * blue);
+                }
+                Log.d("12","gray:"+gray);
+                bm.setPixel(col, row, Color.argb(alpha, gray, gray, gray));
+            }
+        }
+        return bm;
+    }
+    //将图像像素数据转为一维数组，isReverse判断是否需要反化图像
     public int[] getGrayPix_R(Bitmap bp,boolean isReverse){
         int[]pxs=new int[784];
         int acc=0;
         for(int m=0;m<28;++m){
             for(int n=0;n<28;++n){
                 if(isReverse)
-                    pxs[acc]=255- Color.red(bp.getPixel(n,m));
+                    pxs[acc]=255-Color.red(bp.getPixel(n,m));
                 else
                     pxs[acc]=Color.red(bp.getPixel(n,m));
+                Log.d("12","gray_"+acc+":"+pxs[acc]+"_");
                 ++acc;
             }
         }
         return pxs;
+
     }
-    /**
-     * 将int数组转化为float数组
-     * @param src
-     * @param w
-     * @return
-     */
-    public float[] ints2float(int[] src,int w){
-        float res[]=new float[w];
-        for(int i=0;i<w;++i) {
-            res[i]=src[i];
-        }
-        return  res;
-    }
+
     @Override
     public List<Recognition> recognizeImage(final Bitmap bitmap) {
         // Log this method so that it can be analyzed with systrace.
@@ -161,26 +185,28 @@ public class TensorFlowImageClassifier implements Classifier {
 //        Trace.endSection();
         // Preprocess the image data from 0-255 int to normalized float based
         // on the provided parameters.
+        Bitmap greyBitmap=gray(bitmap,2);
 //        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        intValues=getGrayPix_R(greyBitmap,true);
 //        for (int i = 0; i < intValues.length; ++i) {
 //            final int val = intValues[i];
 //            floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
 //            floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
 //            floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
 //        }
-        int pxs[]=getGrayPix_R(bitmap,true);
-        floatValues=ints2float(pxs,784);
+        for (int i = 0; i < intValues.length; ++i) {
+            floatValues[i]=(float)(intValues[i]/255.0);
+        }
 
         // Copy the input data into TensorFlow.
         Trace.beginSection("feed");
-        inferenceInterface.feed(inputName, floatValues, 1, 784);
+        inferenceInterface.feed(inputName, floatValues, 1,inputSize*inputSize*1);
 
 
         Trace.endSection();
 
         // Run the inference call.
         Trace.beginSection("run");
-        //inferenceInterface.run(outputNames, logStats);
         inferenceInterface.run(outputNames);
         Trace.endSection();
 
