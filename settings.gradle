@@ -1,1 +1,1 @@
-include ':app', ':not_mnist'
+include ':app', ':mnist'
