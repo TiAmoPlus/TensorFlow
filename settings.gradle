@@ -1,1 +1,1 @@
-include ':app', ':mnist'
+include ':app', ':mnist', ':cifar10'

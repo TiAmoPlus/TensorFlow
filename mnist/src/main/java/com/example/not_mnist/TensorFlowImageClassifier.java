@@ -120,13 +120,15 @@ public class TensorFlowImageClassifier implements Classifier {
         return c;
     }
 
+
     /**
-     * \
+     *
      * @param bitmap 原bitmap位示图
      * @param schema 模式 0:(最大值+最小值)/2.1: (red+blue+green)/3.2:red*0.3+green*0.59+0.11*blue
-     * @return 返回灰度的Bitmap
+     * @param isReverse 是否反转
+     * @return
      */
-    public Bitmap gray(Bitmap bitmap, int schema)
+    public Bitmap gray(Bitmap bitmap, int schema,boolean isReverse)
     {
         Bitmap bm = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(), bitmap.getConfig());
         int width = bitmap.getWidth();
@@ -151,6 +153,9 @@ public class TensorFlowImageClassifier implements Classifier {
                 else if(schema == 2)
                 {
                     gray = (int)(0.3 * red + 0.59 * green + 0.11 * blue);
+                }
+                if (isReverse==true){
+                    gray=255-gray;
                 }
                 Log.d("12","gray:"+gray);
                 bm.setPixel(col, row, Color.argb(alpha, gray, gray, gray));
@@ -185,8 +190,8 @@ public class TensorFlowImageClassifier implements Classifier {
 //        Trace.endSection();
         // Preprocess the image data from 0-255 int to normalized float based
         // on the provided parameters.
-        Bitmap greyBitmap=gray(bitmap,2);
-        intValues=getGrayPix_R(greyBitmap,true);
+        Bitmap greyBitmap=gray(bitmap,2,false);
+        intValues=getGrayPix_R(greyBitmap,false);
 /*        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
 
         for (int i = 0; i < intValues.length; ++i) {
